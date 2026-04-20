@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'Content.dart';
 import 'registration_page.dart';
 import 'utility.dart';
 
@@ -194,6 +195,18 @@ class MyHomePage extends StatelessWidget {
                 );
               },
               child: Text('Sign Up'),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (context) {
+                      return Content();
+                    },
+                  ),
+                );
+              },
+              child: Text("content"),
             ),
           ],
         ),
