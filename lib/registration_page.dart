@@ -15,17 +15,23 @@ class RegisterPageState extends State<RegisterPage> {
   final TextEditingController confirmpasswordcontroller =
       TextEditingController();
 
-  String? userIdErrorText;
-  String? passwordErrorText;
-  String? confirmPasswordErrorText;
-  bool obscurePassword = true;
-  bool obscureConfirmPassword = true;
+  final ValueNotifier<String?> userIdErrorText = ValueNotifier<String?>(null);
+  final ValueNotifier<String?> passwordErrorText = ValueNotifier<String?>(null);
+  final ValueNotifier<String?> confirmPasswordErrorText =
+      ValueNotifier<String?>(null);
+  final ValueNotifier<bool> obscurePassword = ValueNotifier<bool>(true);
+  final ValueNotifier<bool> obscureConfirmPassword = ValueNotifier<bool>(true);
 
   @override
   void dispose() {
     useridcontroller.dispose();
     passwordcontroller.dispose();
     confirmpasswordcontroller.dispose();
+    userIdErrorText.dispose();
+    passwordErrorText.dispose();
+    confirmPasswordErrorText.dispose();
+    obscurePassword.dispose();
+    obscureConfirmPassword.dispose();
     super.dispose();
   }
 
@@ -69,15 +75,31 @@ class RegisterPageState extends State<RegisterPage> {
     return null;
   }
 
-  void _checkUserIdAvailability() {
-    setState(() {
-      userIdErrorText = _setUserIdErrorText(useridcontroller.text);
-    });
+  void _validateUserId() {
+    userIdErrorText.value = _setUserIdErrorText(useridcontroller.text);
+  }
 
-    final isAvailable = userIdErrorText == null;
+  void _validatePassword() {
+    passwordErrorText.value = _setPasswordErrorText(passwordcontroller.text);
+    confirmPasswordErrorText.value = _setConfirmPasswordErrorText(
+      confirmpasswordcontroller.text,
+    );
+  }
+
+  void _validateConfirmPassword() {
+    confirmPasswordErrorText.value = _setConfirmPasswordErrorText(
+      confirmpasswordcontroller.text,
+    );
+  }
+
+  void _checkUserIdAvailability() {
+    _validateUserId();
+    final isAvailable = userIdErrorText.value == null;
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text(isAvailable ? 'User ID is available' : userIdErrorText!),
+        content: Text(
+          isAvailable ? 'User ID is available' : userIdErrorText.value!,
+        ),
         backgroundColor: isAvailable ? Colors.green : Colors.redAccent,
         behavior: SnackBarBehavior.floating,
       ),
@@ -85,17 +107,13 @@ class RegisterPageState extends State<RegisterPage> {
   }
 
   void validate() {
-    setState(() {
-      userIdErrorText = _setUserIdErrorText(useridcontroller.text);
-      passwordErrorText = _setPasswordErrorText(passwordcontroller.text);
-      confirmPasswordErrorText = _setConfirmPasswordErrorText(
-        confirmpasswordcontroller.text,
-      );
-    });
+    _validateUserId();
+    _validatePassword();
+    _validateConfirmPassword();
 
-    if (userIdErrorText == null &&
-        passwordErrorText == null &&
-        confirmPasswordErrorText == null) {
+    if (userIdErrorText.value == null &&
+        passwordErrorText.value == null &&
+        confirmPasswordErrorText.value == null) {
       Configurations.credentials.add({
         'userid': useridcontroller.text.trim(),
         'password': passwordcontroller.text,
@@ -130,96 +148,99 @@ class RegisterPageState extends State<RegisterPage> {
           children: [
             Padding(
               padding: const EdgeInsets.all(10.0),
-              child: TextField(
-                controller: useridcontroller,
-                onChanged: (_) {
-                  setState(() {
-                    userIdErrorText = _setUserIdErrorText(
-                      useridcontroller.text,
-                    );
-                  });
-                },
-                decoration: InputDecoration(
-                  suffixIcon: InkWell(
-                    onTap: _checkUserIdAvailability,
-                    child: const Padding(
-                      padding: EdgeInsets.all(8.0),
-                      child: Text('Check'),
+              child: ValueListenableBuilder<String?>(
+                valueListenable: userIdErrorText,
+                builder: (context, value, child) {
+                  return TextField(
+                    controller: useridcontroller,
+                    onChanged: (_) => _validateUserId(),
+                    decoration: InputDecoration(
+                      suffixIcon: InkWell(
+                        onTap: _checkUserIdAvailability,
+                        child: const Padding(
+                          padding: EdgeInsets.all(8.0),
+                          child: Text('Check'),
+                        ),
+                      ),
+                      labelText: 'User ID',
+                      errorText: value,
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(20),
+                      ),
                     ),
-                  ),
-                  labelText: 'User ID',
-                  errorText: userIdErrorText,
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                ),
+                  );
+                },
               ),
             ),
             Padding(
               padding: const EdgeInsets.all(10.0),
-              child: TextField(
-                controller: passwordcontroller,
-                obscureText: obscurePassword,
-                onChanged: (_) {
-                  setState(() {
-                    passwordErrorText = _setPasswordErrorText(
-                      passwordcontroller.text,
-                    );
-                    confirmPasswordErrorText = _setConfirmPasswordErrorText(
-                      confirmpasswordcontroller.text,
-                    );
-                  });
-                },
-                decoration: InputDecoration(
-                  labelText: 'Password',
-                  errorText: passwordErrorText,
-                  suffixIcon: IconButton(
-                    onPressed: () {
-                      setState(() {
-                        obscurePassword = !obscurePassword;
-                      });
+              child: ValueListenableBuilder<String?>(
+                valueListenable: passwordErrorText,
+                builder: (context, value, child) {
+                  return ValueListenableBuilder<bool>(
+                    valueListenable: obscurePassword,
+                    builder: (context, isObscure, child) {
+                      return TextField(
+                        controller: passwordcontroller,
+                        obscureText: isObscure,
+                        onChanged: (_) => _validatePassword(),
+                        decoration: InputDecoration(
+                          labelText: 'Password',
+                          errorText: value,
+                          suffixIcon: IconButton(
+                            onPressed: () {
+                              obscurePassword.value = !obscurePassword.value;
+                            },
+                            icon: Icon(
+                              isObscure
+                                  ? Icons.visibility
+                                  : Icons.visibility_off,
+                            ),
+                          ),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                        ),
+                      );
                     },
-                    icon: Icon(
-                      obscurePassword ? Icons.visibility : Icons.visibility_off,
-                    ),
-                  ),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                ),
+                  );
+                },
               ),
             ),
             Padding(
               padding: const EdgeInsets.all(10.0),
-              child: TextField(
-                controller: confirmpasswordcontroller,
-                obscureText: obscureConfirmPassword,
-                onChanged: (_) {
-                  setState(() {
-                    confirmPasswordErrorText = _setConfirmPasswordErrorText(
-                      confirmpasswordcontroller.text,
-                    );
-                  });
-                },
-                decoration: InputDecoration(
-                  labelText: 'Confirm Password',
-                  errorText: confirmPasswordErrorText,
-                  suffixIcon: IconButton(
-                    onPressed: () {
-                      setState(() {
-                        obscureConfirmPassword = !obscureConfirmPassword;
-                      });
+              child: ValueListenableBuilder<String?>(
+                valueListenable: confirmPasswordErrorText,
+                builder: (context, value, child) {
+                  return ValueListenableBuilder<bool>(
+                    valueListenable: obscureConfirmPassword,
+                    builder: (context, isObscure, child) {
+                      return TextField(
+                        controller: confirmpasswordcontroller,
+                        obscureText: isObscure,
+                        onChanged: (_) => _validateConfirmPassword(),
+                        decoration: InputDecoration(
+                          labelText: 'Confirm Password',
+                          errorText: value,
+                          suffixIcon: IconButton(
+                            onPressed: () {
+                              obscureConfirmPassword.value =
+                                  !obscureConfirmPassword.value;
+                            },
+                            icon: Icon(
+                              isObscure
+                                  ? Icons.visibility
+                                  : Icons.visibility_off,
+                            ),
+                          ),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                        ),
+                      );
                     },
-                    icon: Icon(
-                      obscureConfirmPassword
-                          ? Icons.visibility
-                          : Icons.visibility_off,
-                    ),
-                  ),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                ),
+                  );
+                },
               ),
             ),
             ElevatedButton(onPressed: validate, child: const Text('Register')),
