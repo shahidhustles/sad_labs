@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'Content.dart';
+import 'products_page.dart';
 import 'registration_page.dart';
 import 'utility.dart';
 
@@ -207,6 +208,18 @@ class MyHomePage extends StatelessWidget {
                 );
               },
               child: Text("content"),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (context) {
+                      return ProductsPage();
+                    },
+                  ),
+                );
+              },
+              child: Text("Products"),
             ),
           ],
         ),
