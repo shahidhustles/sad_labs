@@ -40,6 +40,19 @@ class _MyHomePageState extends State<MyHomePage> {
       _isPasswordObscure = ValueNotifier<bool>(true);
 
   @override
+  void initState() {
+    super.initState();
+    _loadSavedUserID();
+  }
+
+  Future<void> _loadSavedUserID() async {
+    final savedUserID = await Utility.getSavedUserID();
+    if (savedUserID != null) {
+      _userID.text = savedUserID;
+    }
+  }
+
+  @override
   void dispose() {
     _userID.dispose();
     _password.dispose();
@@ -49,7 +62,7 @@ class _MyHomePageState extends State<MyHomePage> {
     super.dispose();
   }
 
-  void validate(BuildContext context) {
+  Future<void> validate(BuildContext context) async {
     _userIDError.value = true;
     _userIDErrorText = _setUserIDErrorText(_userID.text);
     _passwordError.value = true;
@@ -60,6 +73,8 @@ class _MyHomePageState extends State<MyHomePage> {
         userId: _userID.text.trim(),
         password: _password.text.trim(),
       )) {
+        // Save user ID to SharedPreferences
+        await Utility.saveUserID(_userID.text.trim());
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Center(child: Text("SUCCESS")),

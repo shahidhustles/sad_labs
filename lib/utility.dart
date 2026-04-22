@@ -1,3 +1,5 @@
+import 'package:shared_preferences/shared_preferences.dart';
+
 import 'configurations.dart';
 
 class Utility {
@@ -62,5 +64,18 @@ class Utility {
       }
     }
     return true;
+  }
+
+  // SharedPreferences methods
+  static const String _userIDKey = 'saved_user_id';
+
+  static Future<void> saveUserID(String userID) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(_userIDKey, userID);
+  }
+
+  static Future<String?> getSavedUserID() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString(_userIDKey);
   }
 }

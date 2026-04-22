@@ -106,7 +106,7 @@ class RegisterPageState extends State<RegisterPage> {
     );
   }
 
-  void validate() {
+  void validate() async {
     _validateUserId();
     _validatePassword();
     _validateConfirmPassword();
@@ -118,6 +118,9 @@ class RegisterPageState extends State<RegisterPage> {
         'userid': useridcontroller.text.trim(),
         'password': passwordcontroller.text,
       });
+
+      // Save user ID to SharedPreferences
+      await Utility.saveUserID(useridcontroller.text.trim());
 
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
