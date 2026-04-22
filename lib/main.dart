@@ -23,14 +23,31 @@ class MyApp extends StatelessWidget {
   }
 }
 
-class MyHomePage extends StatelessWidget {
-  MyHomePage({super.key, required this.title});
+class MyHomePage extends StatefulWidget {
+  const MyHomePage({super.key, required this.title});
+
   final String title;
+
+  @override
+  State<MyHomePage> createState() => _MyHomePageState();
+}
+
+class _MyHomePageState extends State<MyHomePage> {
   final _userID = TextEditingController(), _password = TextEditingController();
   String? _userIDErrorText, _passwordErrorText;
   final _userIDError = ValueNotifier<bool>(false),
       _passwordError = ValueNotifier<bool>(false),
       _isPasswordObscure = ValueNotifier<bool>(true);
+
+  @override
+  void dispose() {
+    _userID.dispose();
+    _password.dispose();
+    _userIDError.dispose();
+    _passwordError.dispose();
+    _isPasswordObscure.dispose();
+    super.dispose();
+  }
 
   void validate(BuildContext context) {
     _userIDError.value = true;
@@ -92,7 +109,7 @@ class MyHomePage extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-        title: Text(title),
+        title: Text(widget.title),
       ),
       body: Center(
         child: Column(
